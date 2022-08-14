@@ -75,7 +75,7 @@
               <chevron-right-icon class="inline h-5 w-5" />
             </td>
           </tr>
-          <tr>
+          <tr v-if="loading">
             <td colspan="3" class="p-8">
               <div
                 class="flex items-center justify-center gap-1 text-neutral-500"
@@ -209,6 +209,7 @@ export default {
       },
       prolonger: null,
       updater: null,
+      loading: true,
     };
   },
   computed: {
@@ -264,6 +265,10 @@ export default {
   },
   methods: {
     recalculateHTMLBody() {
+      if (!this.$refs.htmlBody) {
+        this.htmlBody.scale = 1;
+        return;
+      }
       if (document.body.offsetWidth - 99 < this.$refs.htmlBody.offsetWidth) {
         this.htmlBody.scale =
           (document.body.offsetWidth - 99) / this.$refs.htmlBody.offsetWidth;
@@ -278,7 +283,11 @@ export default {
         return decodeURIComponent(escape(window.atob(s)));
       } catch {
         s = s.replace(/={1}/g, '%');
-        return decodeURIComponent(s);
+        try {
+          return decodeURIComponent(s);
+        } catch {
+          return s;
+        }
       }
     },
     mimeWordsDecode(s) {
@@ -306,6 +315,7 @@ export default {
       try {
         await this.api.patch('/account');
       } catch (e) {
+        this.loading = false;
         console.error(e);
       }
     },
