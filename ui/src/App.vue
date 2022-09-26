@@ -282,9 +282,9 @@ export default {
       try {
         return decodeURIComponent(escape(window.atob(s)));
       } catch {
-        s = s.replace(/={1}/g, '%');
         try {
-          return decodeURIComponent(s);
+          const ss = s.replace(/=/g, '%');
+          return decodeURIComponent(ss);
         } catch {
           return s;
         }
