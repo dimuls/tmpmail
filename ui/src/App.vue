@@ -125,7 +125,7 @@
         <div
           v-if="email.htmlBody"
           ref="htmlBody"
-          class="origin-top-left translate-x-0 translate-y-0"
+          class="prose origin-top-left translate-x-0 translate-y-0"
           :class="{
             absolute: htmlBody.scale != 1,
           }"
@@ -134,9 +134,12 @@
           }"
           v-html="base64Decode(email.htmlBody)"
         ></div>
-        <div v-if="!email.htmlBody">{{ email.textBody }}</div>
+        <div v-if="!email.htmlBody" class="prose">{{ email.textBody }}</div>
       </div>
     </div>
+
+    <!-- Yandex.RTB R-A-1960872-1 -->
+    <div id="yandex_rtb_R-A-1960872-1"></div>
 
     <h1 class="text-3xl">Что такое временная одноразовая почта?</h1>
     <p class="w-full max-w-3xl text-center">
@@ -257,6 +260,12 @@ export default {
     },
   },
   async mounted() {
+    window.yaContextCb.push(() => {
+      Ya.Context.AdvManager.render({
+        renderTo: 'yandex_rtb_R-A-1960872-1',
+        blockId: 'R-A-1960872-1',
+      });
+    });
     this.token = localStorage.getItem(tokenKey);
     if (!this.token) {
       await this.getNewAccount();

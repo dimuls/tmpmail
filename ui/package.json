@@ -16,6 +16,7 @@
     "vue": "^3.2.25"
   },
   "devDependencies": {
+    "@tailwindcss/typography": "^0.5.7",
     "@vitejs/plugin-vue": "^2.3.3",
     "autoprefixer": "^10.4.7",
     "eslint": "^8.19.0",
