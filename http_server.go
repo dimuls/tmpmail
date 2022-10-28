@@ -26,10 +26,6 @@ import (
 //go:embed all:ui/dist/*
 var uiFS embed.FS
 
-func init() {
-
-}
-
 type HTTPServerStorage interface {
 	CreateAccount(token, username string) error
 	ProlongAccount(token string) error

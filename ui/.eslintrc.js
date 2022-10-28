@@ -11,5 +11,9 @@ module.exports = {
     sourceType: 'module',
   },
   plugins: ['vue', 'prettier'],
-  rules: { 'prettier/prettier': ['warn'] },
+  rules: {
+    'prettier/prettier': ['warn'],
+    'vue/multi-word-component-names': 'off',
+    'vue/order-in-components': 'off',
+  },
 };

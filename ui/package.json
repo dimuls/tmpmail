@@ -13,10 +13,10 @@
     "dayjs": "^1.11.3",
     "email-addresses": "^5.0.0",
     "emailjs-mime-codec": "^2.0.9",
+    "quoted-printable": "^1.0.1",
     "vue": "^3.2.25"
   },
   "devDependencies": {
-    "@tailwindcss/typography": "^0.5.7",
     "@vitejs/plugin-vue": "^2.3.3",
     "autoprefixer": "^10.4.7",
     "eslint": "^8.19.0",
