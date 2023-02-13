@@ -158,7 +158,12 @@
       </div>
       <email :email="email" />
     </div>
-
+    <ins
+      class="mrg-tag"
+      style="display: block; text-decoration: none"
+      data-ad-client="ad-1140300"
+      data-ad-slot="1140300"
+    ></ins>
     <div v-if="!email" class="flex flex-col gap-8">
       <h1 class="text-center font-sans text-3xl">
         Что такое временная одноразовая почта?
@@ -185,6 +190,57 @@
         href="mailto: dimuls@yandex.ru?subject=Вопросы и предложения по tmp-mail.ru"
         >почту</a
       >
+      <div>
+        Для восстановления почты нажмите
+        <span class="cursor-pointer underline" @click="showRestore">здесь</span>
+      </div>
+    </div>
+  </div>
+  <div
+    v-if="restore.show"
+    class="absolute left-0 right-0 top-0 bottom-0 z-20 flex items-center justify-center bg-white/30 p-4 font-sans backdrop-blur"
+  >
+    <div
+      class="flex w-full max-w-xl flex-col gap-4 rounded-lg bg-neutral-900 bg-white p-4 text-white"
+    >
+      <textarea
+        v-model="restore.token"
+        class="break-all rounded-lg bg-neutral-800 p-4 outline-none"
+        rows="5"
+        placeholder="Введите токен"
+      ></textarea>
+      <div
+        v-if="restore.error"
+        class="-mt-2 w-full text-center text-xs text-red-800"
+      >
+        {{ restore.error }}
+      </div>
+      <div class="-mt-2 w-full text-center text-xs text-neutral-500">
+        Для получения токена пишите на
+        <a class="underline" href="https://t.me/dimuls">телеграм</a> или
+        <a
+          class="underline"
+          href="mailto: dimuls@yandex.ru?subject=Восстановление почты на tmp-mail.ru"
+          >почту</a
+        >
+      </div>
+
+      <div class="flex flex-wrap justify-center gap-4 text-xs">
+        <button
+          :disabled="restore.restoring"
+          class="cursor-pointer rounded-full bg-neutral-800 p-4 shadow active:scale-95"
+          @click="restoreEmail"
+        >
+          Восстановить
+        </button>
+        <button
+          :disabled="restore.restoring"
+          class="cursor-pointer rounded-full bg-neutral-800 p-4 shadow active:scale-95"
+          @click="restore.show = false"
+        >
+          Отмента
+        </button>
+      </div>
     </div>
   </div>
 </template>
@@ -234,6 +290,13 @@ export default {
       loading: true,
       emailContainerWidth: 0,
       emailContainerWidthCalculator: null,
+      restore: {
+        show: false,
+        token: '',
+        error: '',
+        restoring: false,
+        api: null,
+      },
     };
   },
   computed: {
@@ -266,7 +329,7 @@ export default {
       });
       this.prolonger = setInterval(() => this.prolongAccount(), 60000);
       this.updater = setInterval(() => this.getAccount(), 10000);
-      await this.getAccount();
+      await this.getAccount(true);
     },
   },
   async mounted() {
@@ -331,6 +394,40 @@ export default {
         } else {
           console.error(e);
         }
+      }
+    },
+    showRestore() {
+      this.restore.show = true;
+      this.restore.token = '';
+      this.restore.error = '';
+    },
+    async restoreEmail() {
+      if (!this.restore.token) {
+        return;
+      }
+      if (this.restore.restoring) {
+        return;
+      }
+      this.restore.restoring = true;
+      try {
+        const api = axios.create({
+          baseURL,
+          headers: {
+            [tokenHeader]: this.restore.token,
+          },
+        });
+        await api.get('/account');
+        this.token = this.restore.token;
+        localStorage.setItem(tokenKey, this.restore.token);
+        this.restore.show = false;
+      } catch (e) {
+        if (e.response.status === 404) {
+          this.restore.error = 'Неправильный токен';
+        } else {
+          console.error(e);
+        }
+      } finally {
+        this.restore.restoring = false;
       }
     },
   },

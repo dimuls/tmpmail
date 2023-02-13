@@ -13,13 +13,11 @@ import (
 )
 
 type Storage struct {
-	emailTTL time.Duration
-	redis    *redis.Client
+	redis *redis.Client
 }
 
-func NewStorage(addr string, emailTTL time.Duration) *Storage {
+func NewStorage(addr string) *Storage {
 	return &Storage{
-		emailTTL: emailTTL,
 		redis: redis.NewClient(&redis.Options{
 			Addr: addr,
 		}),
@@ -38,7 +36,7 @@ func accountKey(username string) string {
 	return "accs/" + username
 }
 
-func (s *Storage) CreateAccount(token, username string) error {
+func (s *Storage) CreateAccount(token, username string, ttl time.Duration) error {
 	tKey := tokenKey(token)
 	exists, err := s.redis.Exists(context.Background(), tKey).Result()
 	if err != nil {
@@ -47,7 +45,7 @@ func (s *Storage) CreateAccount(token, username string) error {
 	if exists == 1 {
 		return fmt.Errorf("token already exists")
 	}
-	_, err = s.redis.Set(context.Background(), tKey, username, s.emailTTL).Result()
+	_, err = s.redis.Set(context.Background(), tKey, username, ttl).Result()
 	if err != nil {
 		return fmt.Errorf("set token")
 	}
@@ -63,16 +61,16 @@ func (s *Storage) CreateAccount(token, username string) error {
 	if err != nil {
 		return fmt.Errorf("lpush account: %w", err)
 	}
-	_, err = s.redis.Expire(context.Background(), aKey, s.emailTTL).Result()
+	_, err = s.redis.Expire(context.Background(), aKey, ttl).Result()
 	if err != nil {
 		return fmt.Errorf("expire account: %w", err)
 	}
 	return nil
 }
 
-func (s *Storage) ProlongAccount(token string) error {
+func (s *Storage) ProlongAccount(token string, ttl time.Duration) error {
 	tKey := tokenKey(token)
-	_, err := s.redis.Expire(context.Background(), tKey, s.emailTTL).Result()
+	_, err := s.redis.Expire(context.Background(), tKey, ttl).Result()
 	if err != nil {
 		return fmt.Errorf("expire token: %w", err)
 	}
@@ -80,7 +78,7 @@ func (s *Storage) ProlongAccount(token string) error {
 	if err != nil {
 		return fmt.Errorf("get token username: %w", err)
 	}
-	_, err = s.redis.Expire(context.Background(), accountKey(username), s.emailTTL).Result()
+	_, err = s.redis.Expire(context.Background(), accountKey(username), ttl).Result()
 	if err != nil {
 		return fmt.Errorf("expire account: %w", err)
 	}

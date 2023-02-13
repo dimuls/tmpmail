@@ -29,19 +29,24 @@ const (
 var (
 	smtpAddr, httpAddr string
 	redisAddr          string
+	authToken          string
 )
 
 func server(_ *cobra.Command, _ []string) {
-
 	logger, err := zap.NewDevelopment()
 	if err != nil {
 		zap.L().Fatal("init logger", zap.Error(err))
 	}
 
+	if len(authToken) < 40 {
+		logger.Error("empty or too simple auth token")
+		return
+	}
+
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancel()
 
-	rs := redis.NewStorage(redisAddr, emailTTL)
+	rs := redis.NewStorage(redisAddr)
 	defer func() {
 		err = rs.Close()
 		if err != nil {
@@ -120,7 +125,7 @@ func server(_ *cobra.Command, _ []string) {
 	tlsCfg = cm.TLSConfig()
 	tlsCfg.ServerName = domain
 
-	httpSrv := tmpmail.NewHTTPServer(logger, rs, httpAddr, tlsCfg)
+	httpSrv := tmpmail.NewHTTPServer(logger, rs, httpAddr, tlsCfg, authToken, emailTTL)
 
 	go func() {
 		defer cancel()
@@ -161,6 +166,7 @@ func main() {
 	serverCmd.Flags().StringVar(&smtpAddr, "smtp-addr", "0.0.0.0:25", "")
 	serverCmd.Flags().StringVar(&httpAddr, "http-addr", "0.0.0.0:443", "")
 	serverCmd.Flags().StringVar(&redisAddr, "redis-addr", "127.0.0.1:6379", "")
+	serverCmd.Flags().StringVar(&authToken, "auth-token", "", "")
 
 	rootCmd.AddCommand(serverCmd)
 
